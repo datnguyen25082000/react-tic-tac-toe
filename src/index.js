@@ -58,8 +58,16 @@ const Game = () => {
           })`
         : "Go to game start";
       return (
-        <li key={step.index}>
-          <button onClick={() => jumpTo(step.index)}>{desc}</button>
+        <li
+          key={step.index}
+          style={step.index === stepNumber ? { fontWeight: "bold" } : {}}
+        >
+          <button
+            style={step.index === stepNumber ? { fontWeight: "bold" } : {}}
+            onClick={() => jumpTo(step.index)}
+          >
+            {desc}
+          </button>
         </li>
       );
     });
