@@ -1,6 +1,5 @@
 import React from "react";
 import { Square } from "./Square";
-import { EMatrix } from "../constant";
 
 export const Board = (props) => {
   const renderSquare = (i) => {
@@ -19,13 +18,15 @@ export const Board = (props) => {
     );
   };
 
+  const numCol = parseInt(props.numCol);
+
   return (
     <div>
-      {Array.from(Array(EMatrix.num_row).keys()).map((item, i) => {
+      {Array.from(Array(numCol).keys()).map((item, i) => {
         return (
           <div className="board-row" key={i}>
-            {Array.from(Array(EMatrix.num_row).keys()).map((item, j) => {
-              return renderSquare(i * EMatrix.num_col + j);
+            {Array.from(Array(numCol).keys()).map((item, j) => {
+              return renderSquare(i * numCol + j);
             })}
           </div>
         );

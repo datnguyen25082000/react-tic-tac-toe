@@ -1,29 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
 import { Board } from "./components/Board";
-import { EMatrix } from "./constant";
 import { calculateWinner } from "./helpers";
 import "./index.css";
 
 const Game = () => {
   const [xIsNext, setXIsNext] = useState(true);
   const [stepNumber, setStepNumber] = useState(0);
+  const [numCol, setNumCol] = useState(3);
   const [history, setHistory] = useState([
     {
-      squares: Array(EMatrix.num_col * EMatrix.num_row).fill(null),
+      squares: Array(numCol * numCol).fill(null),
       position: -1,
       index: 0,
     },
   ]);
   const [positionWin, setPositionWin] = useState([]);
   const [isAscending, setIsAscending] = useState(true);
+  const refInput = useRef(null);
 
   const handleClick = (i) => {
     const newHistory = history.slice(0, stepNumber + 1);
     const current = newHistory[newHistory.length - 1];
     const squares = current.squares.slice();
 
-    if (calculateWinner(squares) || squares[i]) {
+    if (
+      calculateWinner(squares, numCol, history[stepNumber].position) ||
+      squares[i]
+    ) {
       return;
     } else {
       squares[i] = xIsNext ? "X" : "O";
@@ -53,8 +57,8 @@ const Game = () => {
       const desc = step.index
         ? "Go to move #" +
           step.index +
-          ` - (${Math.floor(step.position / EMatrix.num_col)}, ${
-            step.position % EMatrix.num_col
+          ` - (${Math.floor(step.position / numCol)}, ${
+            step.position % numCol
           })`
         : "Go to game start";
       return (
@@ -75,9 +79,15 @@ const Game = () => {
 
   const renderStatus = () => {
     const current = history[stepNumber];
-    const winner = calculateWinner(current?.squares) || 0;
+    const winner =
+      calculateWinner(current?.squares, numCol, history[stepNumber].position) ||
+      0;
     let status;
-    if (history.length === 10 && stepNumber === history.length - 1 && !winner) {
+    if (
+      history.length === numCol * numCol + 1 &&
+      stepNumber === history.length - 1 &&
+      !winner
+    ) {
       status = "Draw";
     } else if (winner) {
       status = "Winner: " + winner.typeWin;
@@ -89,17 +99,61 @@ const Game = () => {
 
   useEffect(() => {
     const current = history[stepNumber];
-    const winner = calculateWinner(current.squares);
+    const winner = calculateWinner(
+      current.squares,
+      numCol,
+      history[stepNumber].position
+    );
 
     if (winner && stepNumber === history.length - 1)
       setPositionWin(winner.positionWin);
     else setPositionWin([]);
   }, [history, stepNumber]);
 
+  const handleChangeNumCol = (e) => {
+    e.preventDefault();
+    if (refInput && refInput.current) {
+      setNumCol(refInput.current.value);
+      setStepNumber(0);
+      setHistory([
+        {
+          squares: Array(numCol * numCol).fill(null),
+          position: -1,
+          index: 0,
+        },
+      ]);
+      setPositionWin([]);
+      setIsAscending(true);
+    }
+  };
+
+  const renderNumWin = () => {
+    if (numCol < 5) return "Three";
+    else return "Five";
+  };
+
   return (
     <>
       <div className="game">
         <h1>NTD Game - React Tic-Tac-Toe</h1>
+        <form onSubmit={(e) => handleChangeNumCol(e)}>
+          <span>Enter numbers of columns - rows (3 - 10)): </span>
+          <input
+            type="number"
+            min="3"
+            max="10"
+            ref={refInput}
+            onkeydown={() => {
+              return false;
+            }}
+            defaultValue={3}
+          />
+          <button type={"submit"}>Enter</button>
+        </form>
+        <p style={{ marginBottom: 20, fontStyle: "italic" }}>
+          (<span style={{ fontWeight: "bold" }}>{renderNumWin()}</span> of their
+          marks in a horizontal, vertical, or diagonal row to win.)
+        </p>
         <div className="game-container">
           <div className="game-board">
             {history && history[stepNumber] ? (
@@ -110,6 +164,7 @@ const Game = () => {
                 onClick={(i) => handleClick(i)}
                 currentPosition={history[stepNumber].position}
                 positionWin={positionWin}
+                numCol={numCol}
               />
             ) : (
               <></>
@@ -128,6 +183,7 @@ const Game = () => {
             <ol>{renderMove()}</ol>
           </div>
         </div>{" "}
+        <p></p>
       </div>
     </>
   );
